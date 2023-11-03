@@ -6,7 +6,8 @@ const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildMembers
     ]
 })
 
@@ -17,19 +18,26 @@ client.on("ready", () => {
 const token = process.env.DISCORD_LOGIN
 client.login(token)
 
-const apiUrl = "https://lordblock.jonathanbotquin.fr/api/candidatureget"; // L'URL de votre API Symfony
+const apiUrl = "https://lordblock.jonathanbotquin.fr/api"; // L'URL de votre API Symfony
 
 client.login(token);
 
 client.on("messageCreate", async message => {
     if (message.content === "/Candidatureinfo") {
         try {
-            const response = await axios.get(apiUrl);
+            const response = await axios.get(`${apiUrl}/candidatureget`);
             const data = response.data;
             data.forEach(candidature => {
-                message.reply(`Candidature de : ${candidature.pseudo}, ${candidature.text}, ${candidature.date}, ${candidature.status} \n Lien : https://lordblock.jonathanbotquin.fr/candidature/${candidature.id}`);
+                const dateStr = candidature.date
+                const candidatureDate = new Date(dateStr);
+                if (!isNaN(candidatureDate.getTime())) {
+                    // La conversion en objet Date a réussi
+                    const formattedDate = candidatureDate.toISOString().replace('T', ' ').substring(0, 19)
+                    message.reply(`Candidature de : ${candidature.pseudo}, ${formattedDate}, ${candidature.status} \n Lien : https://lordblock.jonathanbotquin.fr/candidature/${candidature.id}`);
+                }else{
+                    message.reply(`Candidature de : ${candidature.pseudo}, ${candidatureDate}, ${candidature.status} \n Lien : https://lordblock.jonathanbotquin.fr/candidature/${candidature.id}`);
+                }
             });
-            message.reply(data.message);
         } catch (error) {
             console.error(error);
             message.reply("Une erreur s'est produite lors de la récupération des données de l'API 2.");
@@ -37,73 +45,61 @@ client.on("messageCreate", async message => {
     }
 });
 
-// client.on("messageCreate", message => {
-//     // console.log(message);
-//     if(message.content === "test"){
-//         message.reply("Présent")
-//     }
+client.on("messageCreate", async message => {
+    if (message.content.startsWith("/CandidatureBy")) {
+        // Divisez le message en mots
+        const args = message.content.split("_");
+        
+        // Les paramètres sont dans args[1], args[2], etc.
+        const parametre1 = args[1];
+        try {
 
-//     if(message.content === "/YukiSlow"){
-//         message.reply("<@" + YukiSlow + "> est connu pour des faits de prise d'otage.");
-//     }
-// })
+            const response = await axios.get(`${apiUrl}/candidatureby/${parametre1}`);
+            const data = response.data[0];
+            message.reply(`Candidature de : ${data.pseudo}, ${data.status} \n Lien : https://lordblock.jonathanbotquin.fr/candidature/${data.id}`);
+        } catch (error) {
+            console.error(error);
+            message.reply("Une erreur s'est produite lors de la récupération des données de l'API 2.");
+        }
+    }
+});
 
-// client.on("messageCreate", async message => {
-//     if (message.content === "/getCandidatures") {
-//         try {
-//             const response = await axios.get('https://lordblock.jonathanbotquin.fr/api/candidatureget');
-//             const data = response.data;
+client.on("messageCreate", async (message) => {
+    if(message.content === "/hello"){
+        try{
+            const response = await axios.get(`${apiUrl}/hello`);
+            const data = response.data;
+            const messageFromAPI = data.message;
+            message.reply(messageFromAPI);
+        }catch(err){
+            console.error(err);
+        }
+        
+    }
+})
 
-//             const candidaturesFormatted = data.map(candidature => `ID: ${candidature.id}`);
+client.on("messageCreate", message => {
+    // console.log(message);
+    if(message.content === "test"){
+        message.reply("Présent")
+    }
 
-//             // Répondez à l'utilisateur Discord avec les données formatées
-//             message.reply(`Candidatures de l'API :\n${candidaturesFormatted.join('\n')}`);
-//         } catch (error) {
-//             console.error(error);
-//         }
-//     }
-// });
+    if(message.content === "/YukiSlow"){
+        message.reply("YukiSlow est connu pour des faits de prise d'otage.");
+    }
 
-// getData()
-// async function getData(){
-//     try {
-//         await axios.get('https://lordblock.jonathanbotquin.fr/api')
-//             .then(res => {
-//                 const data = res.data
-//                 console.log(data)
-//             })
-//         // if(response.ok){
-//         //     const data = await response.json()
+    if(message.content === "/reponsedemrbot"){
+        message.reply("D'abord si tu veux pas finir avec une trentaine de commandes contenant les preuves de la sequestration que tu fait sur plus de 6 individu chut !.");
+    }
+})
 
-//         //     const candidaturesFormatted = data.map(candidature =>  `ID: ${candidature.id}`)
-//         //     console.log(data);
-//         // }
-//     } catch (error) {
-//         console.error(error);
-//     }
-// }
-// const https = require('https');
+client.on("guildMemberAdd", (member) => {
+    const pseudo = member.user.username;
+    const channelName = 'général'
+    const WelcomeChannel = member.guild.channels.cache.find(channel => channel.name === channelName)
 
-// const instance = axios.create({
-//     httpsAgent: new https.Agent({ rejectUnauthorized: false })
-// });
-
-// getData2()
-// async function getData2(){
-//     try {
-//         await instance.get('https://lordblock.jonathanbotquin.fr/api')
-//             .then(res => {
-//                 console.log(res)
-//                 const data = res.data.json()
-//                 console.log(data)
-//             })
-//         // if(response.ok){
-//         //     const data = await response.json()
-
-//         //     const candidaturesFormatted = data.map(candidature =>  `ID: ${candidature.id}`)
-//         //     console.log(data);
-//         // }
-//     } catch (error) {
-//         console.error(error);
-//     }
-// }
+    if(WelcomeChannel){
+        const message = `Bienvenue sur le serveur ${pseudo}`
+        member.guild.systemChannel.send(message)
+    }
+})
