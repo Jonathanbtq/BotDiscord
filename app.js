@@ -13,12 +13,14 @@ const client = new Client({
 
 client.on("ready", () => {
     console.log("Bot Prêt a discuter")
+    fetchData()
+    setInterval(fetchData, 300000);
 })
 
 const token = process.env.DISCORD_LOGIN
 client.login(token)
 
-const apiUrl = "https://lordblock.jonathanbotquin.fr/api"; // L'URL de votre API Symfony
+const apiUrl = "https://lordblock.jonathanbotquin.fr/api";
 
 client.login(token);
 
@@ -64,6 +66,27 @@ client.on("messageCreate", async message => {
     }
 });
 
+const fetchData = async () => {
+    const channelName = 'jonathan-dev'
+    const guild = client.guilds.cache.first();
+    const devChannel = guild.channels.cache.find(channel => channel.name === channelName);
+    try{
+        const response = await axios.get(`${apiUrl}/getNewCandidature`)
+        if(response.data != false){
+            if(response.data.length > 1){
+                // devChannel.send('Nouvelles candidatures')
+                response.data.forEach(candidature => {
+                    devChannel.send(`${candidature.pseudo},  \n Lien : https://lordblock.jonathanbotquin.fr/candidature/${candidature.id}`)
+                })
+            }else{
+                devChannel.send(`${response.data[0].pseudo},  \n Lien : https://lordblock.jonathanbotquin.fr/candidature/${response.data[0].id}`)
+            }
+        }
+    }catch(err){
+        console.log(err)
+    }
+}
+
 client.on("messageCreate", async (message) => {
     if(message.content === "/hello"){
         try{
@@ -103,3 +126,37 @@ client.on("guildMemberAdd", (member) => {
         member.guild.systemChannel.send(message)
     }
 })
+
+
+/**
+ * Météo
+ */
+
+const weatherApiKey = process.env.WEATHER_API_KEY
+
+client.on("messageCreate", async (message) => {
+    if (message.content.startsWith("/meteo")) {
+        const args = message.content.split(' ');
+        if (args.length < 2) {
+            message.reply("Utilisation : /meteo <ville>");
+            return;
+        }
+
+        // Récupérez la ville à partir de la commande
+        const ville = args.slice(1).join(' ');
+
+        // Faites une requête à l'API météo
+        try {
+            const weatherResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${ville}&appid=${weatherApiKey}&units=metric`);
+            const weatherData = weatherResponse.data;
+
+            // Affichez les informations météo
+            const temp = weatherData.main.temp;
+            const description = weatherData.weather[0].description;
+            message.reply(`Météo à ${ville} : Température actuelle : ${temp}°C, Description : ${description}`);
+        } catch (error) {
+            console.error('Une erreur s\'est produite lors de la récupération des données météo.', error);
+            message.reply('Impossible de récupérer les données météo pour cette ville.');
+        }
+    }
+});
