@@ -14,7 +14,7 @@ const client = new Client({
 client.on("ready", () => {
     console.log("Bot Prêt a discuter")
     fetchData()
-    setInterval(fetchData, 300000);
+    setInterval(fetchData, 1800000);
 })
 
 const token = process.env.DISCORD_LOGIN
