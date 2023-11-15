@@ -150,6 +150,32 @@ async function main() {
 // main()
 
 
+
+
+const apiKey = process.env.DEEPL_API; // Remplacez par votre clé d'authentification DeepL
+
+const textToTranslate = ['Hello, world!'];
+const targetLang = 'EN';
+
+const apiUrlDeepl = 'https://api-free.deepl.com/v2/translate';
+
+axios.post(apiUrlDeepl, {
+  text: textToTranslate,
+  target_lang: targetLang,
+}, {
+  headers: {
+    'Authorization': `DeepL-Auth-Key ${apiKey}`,
+    'Content-Type': 'application/json',
+  },
+})
+  .then(response => {
+    console.log(response.data.translations[0].text);
+  })
+  .catch(error => {
+    console.error(error);
+  });
+
+
 /**
  * Météo
  */
