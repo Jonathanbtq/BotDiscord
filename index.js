@@ -1,5 +1,6 @@
 require('dotenv').config()
 const axios = require('axios')
+const { Configuration, OpenAIAPI } = require("openai");
 
 const { Client, GatewayIntentBits } = require("discord.js")
 const client = new Client({
@@ -126,6 +127,33 @@ client.on("guildMemberAdd", (member) => {
         member.guild.systemChannel.send(message)
     }
 })
+
+/**
+ * ChatGpt AI
+ */
+const Gpt_Api = process.env.GPT_API
+const openai = new OpenAIAPI({
+    key : Gpt_Api
+})
+// const openai = new OpenAIAPI(configuration)
+
+// const channelName = 'jonathan-dev'
+// const guild = client.guilds.cache.first();
+// const devChannel = guild.channels.cache.find(channel => channel.name === channelName);
+
+const prompt = 'Quelle est la capitale de la France ?';
+
+openai.createCompletion({
+    model: 'text-davinci-003', // Choisissez le moteur approprié
+    prompt: prompt,
+})
+.then(response => {
+    // devChannel.send(response.data.choices[0].text.trim())
+    console.log(response.data.choices[0].text.trim());
+})
+.catch(error => {
+    console.error(error);
+});
 
 
 /**
