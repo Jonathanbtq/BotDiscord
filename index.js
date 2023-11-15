@@ -1,6 +1,6 @@
 require('dotenv').config()
 const axios = require('axios')
-const { Configuration, OpenAIAPI } = require("openai");
+const { Configuration, OpenAI } = require("openai");
 
 const { Client, GatewayIntentBits } = require("discord.js")
 const client = new Client({
@@ -132,28 +132,22 @@ client.on("guildMemberAdd", (member) => {
  * ChatGpt AI
  */
 const Gpt_Api = process.env.GPT_API
-const openai = new OpenAIAPI({
-    key : Gpt_Api
-})
-// const openai = new OpenAIAPI(configuration)
 
-// const channelName = 'jonathan-dev'
-// const guild = client.guilds.cache.first();
-// const devChannel = guild.channels.cache.find(channel => channel.name === channelName);
+const openai = new OpenAI({apiKey:Gpt_Api});
 
-const prompt = 'Quelle est la capitale de la France ?';
+async function main() {
+    const completion = await openai.chat.completions.create({
+      messages: [{"role": "system", "content": "You are a helpful assistant."},
+          {"role": "user", "content": "Who won the world series in 2020?"},
+          {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
+          {"role": "user", "content": "Where was it played?"}],
+      model: "gpt-3.5-turbo",
+    });
+  
+    console.log(completion.choices[0]);
+}
 
-openai.createCompletion({
-    model: 'text-davinci-003', // Choisissez le moteur approprié
-    prompt: prompt,
-})
-.then(response => {
-    // devChannel.send(response.data.choices[0].text.trim())
-    console.log(response.data.choices[0].text.trim());
-})
-.catch(error => {
-    console.error(error);
-});
+main()
 
 
 /**
